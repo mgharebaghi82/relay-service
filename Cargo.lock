@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "quic_test"
+name = "relay-service"
 version = "0.1.0"
