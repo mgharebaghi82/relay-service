@@ -1,0 +1,13 @@
+[Unit]
+Description=Dial Test
+After=network-online.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+ExecStart=/home/relay-node/target/release/relay-node
+StandardOutput=journal
+
+[Install]
+WantedBy=multi-user.target
