@@ -11,7 +11,6 @@ fn main() {
         .unwrap();
     println!("{}", command);
 
-    Command::new("systemctl").arg("start").arg("myservice");
-    Command::new("systemctl").arg("status").arg("myservice");
-    
+    Command::new("systemctl").arg("start").arg("relay-service");
+    Command::new("systemctl").arg("status").arg("relay-service");
 }
