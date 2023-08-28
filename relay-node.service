@@ -1,5 +1,5 @@
 [Unit]
-Description=Dial Test
+Description=Relay Service
 After=network-online.target
 
 [Service]
