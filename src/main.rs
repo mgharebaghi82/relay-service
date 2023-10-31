@@ -33,12 +33,20 @@ fn main() {
             .unwrap();
         println!("{}", command);
 
+        let enable = Command::new("systemctl")
+            .arg("enable")
+            .arg("relay-service")
+            .status()
+            .unwrap();
+        println!("start status: {}", enable);
+
         let start = Command::new("systemctl")
             .arg("start")
             .arg("relay-service")
             .status()
             .unwrap();
         println!("start status: {}", start);
+        
         let status = Command::new("systemctl")
             .arg("status")
             .arg("relay-service")

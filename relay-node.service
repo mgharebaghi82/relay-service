@@ -3,7 +3,6 @@ Description=Relay Service
 After=network-online.target
 
 [Service]
-EnvironmentFile=/etc/relay_source.conf
 Type=simple
 Restart=always
 RestartSec=1
