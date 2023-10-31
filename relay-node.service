@@ -3,11 +3,11 @@ Description=Relay Service
 After=network-online.target
 
 [Service]
-EnvironmentFile=-/etc/relay_source.conf
+EnvironmentFile=/etc/relay_source.conf
 Type=simple
 Restart=always
 RestartSec=1
-ExecStart=$ {PATH}
+ExecStart=/etc/relay-node
 StandardOutput=journal
 
 [Install]

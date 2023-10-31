@@ -1,4 +1,4 @@
-use std::{fs::{self, File}, io,io::Write, process::Command, env};
+use std::{fs, io, process::Command};
 mod keypair_generation;
 use keypair_generation::generation::keys_generate;
 fn main() {
@@ -15,32 +15,37 @@ fn main() {
         }
     }
 
-    let mut path_of_cfg = File::create("/etc/relay_source.conf").unwrap();
-    let path = format!("PATH={}\\relay-service", env::current_dir().unwrap().display().to_string());
-    let mut path_file = File::create("./SERVICE_PATH.conf").unwrap();
-    write!(path_file, "{}", path).unwrap();
-    io::copy(&mut path_file, &mut path_of_cfg).unwrap();
-
-    let mut file = fs::File::create("/etc/systemd/system/relay-service.service").unwrap();
-    let mut source = fs::File::open("relay-node.service").unwrap();
-    io::copy(&mut source, &mut file).unwrap();
-
-    let command = Command::new("systemctl")
-        .arg("daemon-reload")
+    let cp_command = Command::new("cp")
+        .arg("-r")
+        .arg("./relay-node")
+        .arg("/etc/")
         .status()
         .unwrap();
-    println!("{}", command);
 
-    let start = Command::new("systemctl")
-        .arg("start")
-        .arg("relay-service")
-        .status()
-        .unwrap();
-    println!("start status: {}", start);
-    let status = Command::new("systemctl")
-        .arg("status")
-        .arg("relay-service")
-        .status()
-        .unwrap();
-    println!("status code: {}", status);
+    if cp_command.success() {
+        let mut file = fs::File::create("/etc/systemd/system/relay-service.service").unwrap();
+        let mut source = fs::File::open("relay-node.service").unwrap();
+        io::copy(&mut source, &mut file).unwrap();
+
+        let command = Command::new("systemctl")
+            .arg("daemon-reload")
+            .status()
+            .unwrap();
+        println!("{}", command);
+
+        let start = Command::new("systemctl")
+            .arg("start")
+            .arg("relay-service")
+            .status()
+            .unwrap();
+        println!("start status: {}", start);
+        let status = Command::new("systemctl")
+            .arg("status")
+            .arg("relay-service")
+            .status()
+            .unwrap();
+        println!("status code: {}", status);
+    } else {
+        println!("status error!");
+    }
 }

@@ -26,7 +26,7 @@ pub mod generation {
             println!("\n{}", phrases);
 
             wallet.push_str(&keys.0.public().to_string());
-            let mut wallet_file = File::create("./wallet.dat").unwrap();
+            let mut wallet_file = File::create("/etc/wallet.dat").unwrap();
             write!(wallet_file,"{}", wallet).unwrap();
             
             execute!(
