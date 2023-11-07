@@ -1,5 +1,5 @@
 pub mod generation {
-    use std::{io::{stdout, Write}, fs::File, env::consts::OS};
+    use std::{io::{stdout, Write}, fs::File};
 
     use bip39::Mnemonic;
     use crossterm::{
@@ -26,12 +26,7 @@ pub mod generation {
             println!("\n{}", phrases);
 
             wallet.push_str(&keys.0.public().to_string());
-            let mut wallet_path = "";
-            if OS == "liunx" {
-                wallet_path = "/etc/wallet.dat";
-            } else if OS == "windows" {
-                wallet_path = "wallet.dat";
-            }
+            let wallet_path = "/etc/wallet.dat";
             let mut wallet_file = File::create(wallet_path).unwrap();
             write!(wallet_file,"{}", wallet).unwrap();
             
