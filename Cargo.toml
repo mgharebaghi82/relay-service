@@ -6,7 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-sp-core = "^24.0"
+sp-core = "^25.0"
 bip39 = "^2.0"
 seed15 = "^0.1"
 crossterm = "0.27.0"
+win_run = "0.2.1"

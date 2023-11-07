@@ -46,7 +46,7 @@ fn main() {
             .status()
             .unwrap();
         println!("start status: {}", start);
-        
+
         let status = Command::new("systemctl")
             .arg("status")
             .arg("relay-service")
