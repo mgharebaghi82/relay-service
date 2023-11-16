@@ -6,6 +6,8 @@ fn main() {
     let mut answer = String::new();
 
     let wget_relay_service = Command::new("wget")
+        .arg("-P")
+        .arg("/home/downloads")
         .arg("https://centichain.org/downloads/relay-node.service")
         .status()
         .unwrap();
@@ -13,6 +15,8 @@ fn main() {
     println!("{}", wget_relay_service);
 
     let wget_relay_node = Command::new("wget")
+        .arg("-P")
+        .arg("/home/downloads")
         .arg("https://centichain.org/downloads/relay-node")
         .status()
         .unwrap();
@@ -20,7 +24,6 @@ fn main() {
     println!("{}", wget_relay_node);
 
     if wget_relay_node.success() {
-
         loop {
             answer.clear();
             wallet.clear();
@@ -34,15 +37,15 @@ fn main() {
 
         let cp_command = Command::new("cp")
             .arg("-r")
-            .arg("relay-node")
+            .arg("home/downloads/relay-node")
             .arg("/etc/")
             .status()
             .unwrap();
 
         if cp_command.success() {
-            let mut file = fs::File::create("/etc/systemd/system/relay-service.service").unwrap();
-            let mut source = fs::File::open("relay-node.service").unwrap();
-            io::copy(&mut source, &mut file).unwrap();
+            let mut service_file = fs::File::create("/etc/systemd/system/relay-service.service").unwrap();
+            let mut source_file = fs::File::open("/hoem/downloads/relay-node.service").unwrap();
+            io::copy(&mut source_file, &mut service_file).unwrap();
 
             let command = Command::new("systemctl")
                 .arg("daemon-reload")
