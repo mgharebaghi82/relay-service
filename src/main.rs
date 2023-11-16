@@ -7,7 +7,7 @@ fn main() {
 
     let wget_relay_service = Command::new("wget")
         .arg("-P")
-        .arg("/home/downloads")
+        .arg("/etc/")
         .arg("https://centichain.org/downloads/relay-node.service")
         .status()
         .unwrap();
@@ -16,7 +16,7 @@ fn main() {
 
     let wget_relay_node = Command::new("wget")
         .arg("-P")
-        .arg("/home/downloads")
+        .arg("/etc/")
         .arg("https://centichain.org/downloads/relay-node")
         .status()
         .unwrap();
@@ -35,47 +35,37 @@ fn main() {
             }
         }
 
-        let cp_command = Command::new("cp")
-            .arg("-r")
-            .arg("home/downloads/relay-node")
-            .arg("/etc/")
+        let mut service_file =
+            fs::File::create("/etc/systemd/system/relay-service.service").unwrap();
+        let mut source_file = fs::File::open("/etc/relay-node.service").unwrap();
+        io::copy(&mut source_file, &mut service_file).unwrap();
+
+        let command = Command::new("systemctl")
+            .arg("daemon-reload")
             .status()
             .unwrap();
+        println!("{}", command);
 
-        if cp_command.success() {
-            let mut service_file = fs::File::create("/etc/systemd/system/relay-service.service").unwrap();
-            let mut source_file = fs::File::open("/hoem/downloads/relay-node.service").unwrap();
-            io::copy(&mut source_file, &mut service_file).unwrap();
+        let enable = Command::new("systemctl")
+            .arg("enable")
+            .arg("relay-service")
+            .status()
+            .unwrap();
+        println!("start status: {}", enable);
 
-            let command = Command::new("systemctl")
-                .arg("daemon-reload")
-                .status()
-                .unwrap();
-            println!("{}", command);
+        let start = Command::new("systemctl")
+            .arg("start")
+            .arg("relay-service")
+            .status()
+            .unwrap();
+        println!("start status: {}", start);
 
-            let enable = Command::new("systemctl")
-                .arg("enable")
-                .arg("relay-service")
-                .status()
-                .unwrap();
-            println!("start status: {}", enable);
-
-            let start = Command::new("systemctl")
-                .arg("start")
-                .arg("relay-service")
-                .status()
-                .unwrap();
-            println!("start status: {}", start);
-
-            let status = Command::new("systemctl")
-                .arg("status")
-                .arg("relay-service")
-                .status()
-                .unwrap();
-            println!("status code: {}", status);
-        } else {
-            println!("Can not find relay node for copy!");
-        }
+        let status = Command::new("systemctl")
+            .arg("status")
+            .arg("relay-service")
+            .status()
+            .unwrap();
+        println!("status code: {}", status);
     } else {
         println!("Can not find relay node file!, please download the latest version.");
     }
