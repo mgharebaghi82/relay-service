@@ -40,6 +40,13 @@ fn main() {
         let mut source_file = fs::File::open("/etc/relay-node.service").unwrap();
         io::copy(&mut source_file, &mut service_file).unwrap();
 
+        let chmod = Command::new("chmod")
+        .arg("777")
+        .arg("/etc/relay-node")
+        .status().unwrap();
+
+        println!("{}", chmod);
+
         let command = Command::new("systemctl")
             .arg("daemon-reload")
             .status()
