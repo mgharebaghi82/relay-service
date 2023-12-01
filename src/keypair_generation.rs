@@ -1,5 +1,8 @@
 pub mod generation {
-    use std::{io::{stdout, Write}, fs::File};
+    use std::{
+        fs::{self, File},
+        io::{stdout, Write},
+    };
 
     use bip39::Mnemonic;
     use crossterm::{
@@ -28,8 +31,8 @@ pub mod generation {
             wallet.push_str(&keys.0.public().to_string());
             let wallet_path = "/etc/wallet.dat";
             let mut wallet_file = File::create(wallet_path).unwrap();
-            write!(wallet_file,"{}", wallet).unwrap();
-            
+            write!(wallet_file, "{}", wallet).unwrap();
+
             execute!(
                 stdout(),
                 SetForegroundColor(Color::Green),
@@ -56,10 +59,7 @@ pub mod generation {
                     execute!(
                         stdout(),
                         SetForegroundColor(Color::Red),
-                        Print(
-                            "If you save Your adresses please enter Y:\n"
-                                .bold()
-                        ),
+                        Print("If you save Your adresses please enter Y:\n".bold()),
                         ResetColor
                     )
                     .unwrap();
@@ -68,6 +68,15 @@ pub mod generation {
         } else {
             if let Ok(keys) = ecdsa::Pair::from_phrase(&answer, None) {
                 wallet.push_str(&keys.0.public().to_string());
+                let wallet_path = "/etc/wallet.dat";
+                let wallet_exist = fs::metadata(wallet_path).is_ok();
+                if wallet_exist {
+                    let mut wallet_file = File::open(wallet_path).unwrap();
+                    write!(wallet_file, "{}", wallet).unwrap();
+                } else {
+                    let mut wallet_file = File::create(wallet_path).unwrap();
+                    write!(wallet_file, "{}", wallet).unwrap();
+                }
                 execute!(
                     stdout(),
                     SetForegroundColor(Color::Green),
