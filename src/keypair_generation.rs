@@ -71,7 +71,7 @@ pub mod generation {
                 let wallet_path = "/etc/wallet.dat";
                 let wallet_exist = fs::metadata(wallet_path).is_ok();
                 if wallet_exist {
-                    let mut wallet_file = File::open(wallet_path).unwrap();
+                    let mut wallet_file = File::create(wallet_path).unwrap();
                     write!(wallet_file, "{}", wallet).unwrap();
                 } else {
                     let mut wallet_file = File::create(wallet_path).unwrap();

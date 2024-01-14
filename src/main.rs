@@ -94,7 +94,7 @@ fn get_relays_datfile(wget_relays_dat: ExitStatus, answer: &mut String, wallet: 
             wallet.clear();
             println!("Enter phrases key or enter 'N' to generate one:");
             std::io::stdin().read_line(answer).unwrap();
-            keys_generate(answer.clone(), wallet);
+            keys_generate(answer.trim().to_string(), wallet);
             if wallet.clone() != "emptey".to_string() {
                 break;
             }
