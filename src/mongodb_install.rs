@@ -22,6 +22,13 @@ pub fn linux_mongo_install() {
                 .expect("curl error!");
             println!("{}", format!("{:?}", curl));
 
+            let gpg = Command::new("sh")
+            .arg("-c")
+            .arg("curl -fsSL https://pgp.mongodb.com/server-7.0.asc | sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor")
+            .output()
+            .expect("failed to execute process");
+            println!("{}", format!("{:?}", gpg));
+
             let deb = Command::new("sh")
                     .arg("-c")
                     .arg("echo \"deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse\" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list")
@@ -33,7 +40,7 @@ pub fn linux_mongo_install() {
                 .arg("update")
                 .output()
                 .expect("update command problem!");
-            println!("{}",format!("{:?}", update));
+            println!("{}", format!("{:?}", update));
 
             let install_mng = Command::new("sudo")
                 .arg("apt-get")
@@ -68,7 +75,7 @@ pub fn linux_mongo_install() {
                 Ok(_) => {
                     println!("mongo db is installed");
                 }
-                Err(e) => println!("{}", format!("{:?}", e))
+                Err(e) => println!("{}", format!("{:?}", e)),
             }
         }
     }
