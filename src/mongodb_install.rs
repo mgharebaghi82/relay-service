@@ -24,26 +24,26 @@ pub fn linux_mongo_install() {
 
             let gpg = Command::new("sh")
             .arg("-c")
-            .arg("curl -fsSL https://pgp.mongodb.com/server-7.0.asc | sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor")
+            .arg("wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc |  gpg --dearmor | sudo tee /usr/share/keyrings/mongodb.gpg > /dev/null")
             .output()
-            .expect("failed to execute process");
+            .expect("wget error!");
             println!("{}", format!("{:?}", gpg));
 
             let deb = Command::new("sh")
                     .arg("-c")
-                    .arg("echo \"deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse\" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list")
+                    .arg("echo \"deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse\" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list")
                     .output().expect("command can't run!");
             println!("{}", format!("{:?}", deb));
 
             let update = Command::new("sudo")
-                .arg("apt-get")
+                .arg("apt")
                 .arg("update")
                 .output()
                 .expect("update command problem!");
             println!("{}", format!("{:?}", update));
 
             let install_mng = Command::new("sudo")
-                .arg("apt-get")
+                .arg("apt")
                 .arg("install")
                 .arg("-y")
                 .arg("mongodb-org")
