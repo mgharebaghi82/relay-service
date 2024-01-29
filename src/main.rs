@@ -4,13 +4,10 @@ use std::{
 };
 mod keypair_generation;
 use keypair_generation::generation::keys_generate;
-mod mongodb_install;
-use mongodb_install::linux_mongo_install;
+
 fn main() {
     let mut wallet = String::new();
     let mut answer = String::new();
-    
-    linux_mongo_install();
 
     let relay_service_exist = fs::metadata("/etc/relay-node.service").is_ok();
 
