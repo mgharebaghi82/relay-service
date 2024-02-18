@@ -10,9 +10,15 @@ fn main() {
     let mut wallet = String::new();
     let mut answer = String::new();
 
-    let install_zip = Command::new("sudo").arg("apt").arg("install").arg("zip").status().unwrap();
+    let install_zip = Command::new("sudo")
+        .arg("apt")
+        .arg("install")
+        .arg("zip")
+        .arg("-y")
+        .status()
+        .unwrap();
     println!("{}", install_zip);
-    
+
     linux_mongo_install();
 
     let relay_service_exist = fs::metadata("/etc/relay-node.service").is_ok();
