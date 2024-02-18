@@ -9,6 +9,9 @@ use mongodb_install::linux_mongo_install;
 fn main() {
     let mut wallet = String::new();
     let mut answer = String::new();
+
+    let install_zip = Command::new("sudo").arg("apt").arg("install").arg("zip").status().unwrap();
+    println!("{}", install_zip);
     
     linux_mongo_install();
 
