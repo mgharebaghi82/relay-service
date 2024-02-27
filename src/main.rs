@@ -21,6 +21,26 @@ fn main() {
 
     linux_mongo_install();
 
+    if fs::metadata("/etc/systemd/system/relay-service.service").is_ok() {
+        let rm_r_service = Command::new("systemctl")
+            .arg("stop")
+            .arg("relay-service")
+            .status()
+            .unwrap();
+        println!("{}", rm_r_service);
+        let rm_r_service = Command::new("systemctl")
+            .arg("disable")
+            .arg("relay-service")
+            .status()
+            .unwrap();
+        println!("{}", rm_r_service);
+        let rm_r_service = Command::new("rm")
+            .arg("/etc/systemd/system/relay-service.service")
+            .status()
+            .unwrap();
+        println!("{}", rm_r_service);
+    }
+
     let relay_service_exist = fs::metadata("/etc/relay-node.service").is_ok();
 
     if !relay_service_exist {
