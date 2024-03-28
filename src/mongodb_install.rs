@@ -53,13 +53,22 @@ pub async fn linux_mongo_install() -> Result<(), String> {
                             println!("sleep for 10 seconds to restart mongod");
                             tokio::time::sleep(Duration::from_secs(10)).await;
                             println!("start to configure replica set");
+                            
                             //final set replica set configuration
-                            admin_db
+                            match admin_db
                                 .run_command(doc! {"replSetInitiate": 1}, None)
                                 .await
-                                .unwrap();
-                            println!("monogodb is installed");
-                            Ok(())
+                            {
+                                Ok(doc) => {
+                                    println!("replica set for:\n{:?}", doc);
+                                    println!("monogodb is installed");
+                                    Ok(())
+                                }
+                                Err(e) => {
+                                    println!("{}", e);
+                                    return Err("".to_string());
+                                }
+                            }
                         }
                         Err(e) => {
                             println!("{}", e);
