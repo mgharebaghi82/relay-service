@@ -1,4 +1,4 @@
-use std::{fs::OpenOptions, io::Write, process::Command};
+use std::{fs::OpenOptions, io::Write, process::Command, time::Duration};
 
 use mongodb::{bson::doc, Client};
 
@@ -43,20 +43,29 @@ pub async fn linux_mongo_install() -> Result<(), String> {
                     }
 
                     //restart mongod for set replica
-                    Command::new("sudo")
+                    match Command::new("sudo")
                         .arg("systemctl")
                         .arg("restart")
                         .arg("mongod")
                         .output()
-                        .expect("restart mongod problem!");
-
-                    //final set replica set configuration
-                    admin_db
-                        .run_command(doc! {"rs.initiate": 1}, None)
-                        .await
-                        .unwrap();
-                    println!("monogodb is installed");
-                    Ok(())
+                    {
+                        Ok(_) => {
+                            println!("sleep for 10 seconds to restart mongod");
+                            tokio::time::sleep(Duration::from_secs(10)).await;
+                            println!("start to configure replica set");
+                            //final set replica set configuration
+                            admin_db
+                                .run_command(doc! {"rs.initiate": 1}, None)
+                                .await
+                                .unwrap();
+                            println!("monogodb is installed");
+                            Ok(())
+                        }
+                        Err(e) => {
+                            println!("{}", e);
+                            return Err("".to_string());
+                        }
+                    }
                 }
             }
         }
@@ -145,21 +154,31 @@ pub async fn linux_mongo_install() -> Result<(), String> {
             }
 
             //restart mongod for set replica
-            Command::new("sudo")
+            match Command::new("sudo")
                 .arg("systemctl")
                 .arg("restart")
                 .arg("mongod")
                 .output()
-                .expect("restart mongod problem!");
-
-            //final set replica set configuration    
-            let client = Client::with_uri_str("mongodb://localhost:27017").await;
-            let admin_db = client.unwrap().database("admin");
-            admin_db
-                .run_command(doc! {"rs.initiate": 1}, None)
-                .await
-                .unwrap();
-            Ok(())
+            {
+                Ok(_) => {
+                    println!("sleep for 10 seconds to restart mongod");
+                    tokio::time::sleep(Duration::from_secs(10)).await;
+                    println!("start to configure replica set");
+                    let client = Client::with_uri_str("mongodb://localhost:27017").await;
+                    let admin_db = client.unwrap().database("admin");
+                    //final set replica set configuration
+                    admin_db
+                        .run_command(doc! {"rs.initiate": 1}, None)
+                        .await
+                        .unwrap();
+                    println!("monogodb is installed");
+                    Ok(())
+                }
+                Err(e) => {
+                    println!("{}", e);
+                    return Err("".to_string());
+                }
+            }
         }
     }
 }
