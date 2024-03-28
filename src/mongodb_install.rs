@@ -13,7 +13,7 @@ pub async fn linux_mongo_install() -> Result<(), String> {
 
     match check_mongo {
         Ok(_) => {
-            let client = Client::with_uri_str("mongodb://127.0.0.1:27017").await;
+            let client = Client::with_uri_str("mongodb://127.0.0.1:27017?directConnection=true").await;
             let admin_db = client.unwrap().database("admin");
             let config = admin_db
                 .run_command(doc! {"replSetGetConfig": 1}, None)
@@ -53,7 +53,7 @@ pub async fn linux_mongo_install() -> Result<(), String> {
                             println!("sleep for 10 seconds to restart mongod");
                             tokio::time::sleep(Duration::from_secs(10)).await;
                             println!("start to configure replica set");
-                            
+
                             //final set replica set configuration
                             match admin_db
                                 .run_command(doc! {"replSetInitiate": 1}, None)
@@ -173,7 +173,7 @@ pub async fn linux_mongo_install() -> Result<(), String> {
                     println!("sleep for 10 seconds to restart mongod");
                     tokio::time::sleep(Duration::from_secs(10)).await;
                     println!("start to configure replica set");
-                    let client = Client::with_uri_str("mongodb://127.0.0.1:27017").await;
+                    let client = Client::with_uri_str("mongodb://127.0.0.1:27017?directConnection=true").await;
                     let admin_db = client.unwrap().database("admin");
 
                     //final set replica set configuration
