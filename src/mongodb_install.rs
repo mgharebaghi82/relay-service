@@ -3,6 +3,14 @@ use std::{fs::OpenOptions, io::Write, process::Command, time::Duration};
 use mongodb::{bson::doc, Client};
 
 pub async fn linux_mongo_install() -> Result<(), String> {
+    // Build the configuration for the replica set
+    let rs_config = doc! {
+        "_id": "myReplSet",  // Replace with your desired replica set name
+        "members": [
+            { "_id": 0, "host": "localhost:27017" }, // Member 1
+        ]
+    };
+
     Command::new("sudo")
         .arg("apt")
         .arg("autoremove")
@@ -55,7 +63,7 @@ pub async fn linux_mongo_install() -> Result<(), String> {
                             println!("start to configure replica set");
                             //final set replica set configuration
                             admin_db
-                                .run_command(doc! {"rs.initiate": 1}, None)
+                                .run_command(doc! {"replSetInitiate": rs_config}, None)
                                 .await
                                 .unwrap();
                             println!("monogodb is installed");
@@ -166,9 +174,10 @@ pub async fn linux_mongo_install() -> Result<(), String> {
                     println!("start to configure replica set");
                     let client = Client::with_uri_str("mongodb://localhost:27017").await;
                     let admin_db = client.unwrap().database("admin");
+
                     //final set replica set configuration
                     admin_db
-                        .run_command(doc! {"rs.initiate": 1}, None)
+                        .run_command(doc! {"replSetInitiate": rs_config}, None)
                         .await
                         .unwrap();
                     println!("monogodb is installed");
