@@ -52,7 +52,7 @@ pub async fn linux_mongo_install() -> Result<(), String> {
 
                     //final set replica set configuration
                     admin_db
-                        .run_command(doc! {"rs.initiate()": {}}, None)
+                        .run_command(doc! {"rs.initiate": {}}, None)
                         .await
                         .unwrap();
                     println!("monogodb is installed");
