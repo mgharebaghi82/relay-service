@@ -1,12 +1,14 @@
 use std::{
     fs, io,
-    process::{Command, ExitStatus},
+    process::{self, Command, ExitStatus},
 };
 mod keypair_generation;
 use keypair_generation::generation::keys_generate;
 mod mongodb_install;
 use mongodb_install::linux_mongo_install;
-fn main() {
+
+#[tokio::main]
+async fn main() {
     let mut wallet = String::new();
     let mut answer = String::new();
 
@@ -19,76 +21,79 @@ fn main() {
         .unwrap();
     println!("{}", install_zip);
 
-    linux_mongo_install();
+    match linux_mongo_install().await {
+        Ok(_) => {
+            if fs::metadata("/etc/systemd/system/relay-service.service").is_ok() {
+                let rm_r_service = Command::new("systemctl")
+                    .arg("stop")
+                    .arg("relay-service")
+                    .status()
+                    .unwrap();
+                println!("{}", rm_r_service);
+                let rm_r_service = Command::new("systemctl")
+                    .arg("disable")
+                    .arg("relay-service")
+                    .status()
+                    .unwrap();
+                println!("{}", rm_r_service);
+                let rm_r_service = Command::new("rm")
+                    .arg("/etc/systemd/system/relay-service.service")
+                    .status()
+                    .unwrap();
+                println!("{}", rm_r_service);
+            }
 
-    if fs::metadata("/etc/systemd/system/relay-service.service").is_ok() {
-        let rm_r_service = Command::new("systemctl")
-            .arg("stop")
-            .arg("relay-service")
-            .status()
-            .unwrap();
-        println!("{}", rm_r_service);
-        let rm_r_service = Command::new("systemctl")
-            .arg("disable")
-            .arg("relay-service")
-            .status()
-            .unwrap();
-        println!("{}", rm_r_service);
-        let rm_r_service = Command::new("rm")
-            .arg("/etc/systemd/system/relay-service.service")
-            .status()
-            .unwrap();
-        println!("{}", rm_r_service);
-    }
+            let relay_service_exist = fs::metadata("/etc/relay-node.service").is_ok();
 
-    let relay_service_exist = fs::metadata("/etc/relay-node.service").is_ok();
+            if !relay_service_exist {
+                let wget_relay_service = Command::new("wget")
+                    .arg("-P")
+                    .arg("/etc/")
+                    .arg("https://centichain.org/downloads/relay-node.service")
+                    .status()
+                    .unwrap();
+                println!("{}", wget_relay_service);
+            } else {
+                let rm_r_service = Command::new("rm")
+                    .arg("/etc/relay-node.service")
+                    .status()
+                    .unwrap();
+                println!("{}", rm_r_service);
+                let wget_relay_service = Command::new("wget")
+                    .arg("-P")
+                    .arg("/etc/")
+                    .arg("https://centichain.org/downloads/relay-node.service")
+                    .status()
+                    .unwrap();
+                println!("{}", wget_relay_service);
+            }
 
-    if !relay_service_exist {
-        let wget_relay_service = Command::new("wget")
-            .arg("-P")
-            .arg("/etc/")
-            .arg("https://centichain.org/downloads/relay-node.service")
-            .status()
-            .unwrap();
-        println!("{}", wget_relay_service);
-    } else {
-        let rm_r_service = Command::new("rm")
-            .arg("/etc/relay-node.service")
-            .status()
-            .unwrap();
-        println!("{}", rm_r_service);
-        let wget_relay_service = Command::new("wget")
-            .arg("-P")
-            .arg("/etc/")
-            .arg("https://centichain.org/downloads/relay-node.service")
-            .status()
-            .unwrap();
-        println!("{}", wget_relay_service);
-    }
+            let relay_node_exist = fs::metadata("/etc/relay-node").is_ok();
+            if !relay_node_exist {
+                let wget_relay_node = Command::new("wget")
+                    .arg("-P")
+                    .arg("/etc/")
+                    .arg("https://centichain.org/downloads/relay-node")
+                    .status()
+                    .unwrap();
 
-    let relay_node_exist = fs::metadata("/etc/relay-node").is_ok();
-    if !relay_node_exist {
-        let wget_relay_node = Command::new("wget")
-            .arg("-P")
-            .arg("/etc/")
-            .arg("https://centichain.org/downloads/relay-node")
-            .status()
-            .unwrap();
+                println!("{}", wget_relay_node);
+                handle_relay_node(wget_relay_node, &mut answer, &mut wallet);
+            } else {
+                let rm_r_service = Command::new("rm").arg("/etc/relay-node").status().unwrap();
+                println!("{}", rm_r_service);
+                let wget_relay_node = Command::new("wget")
+                    .arg("-P")
+                    .arg("/etc/")
+                    .arg("https://centichain.org/downloads/relay-node")
+                    .status()
+                    .unwrap();
 
-        println!("{}", wget_relay_node);
-        handle_relay_node(wget_relay_node, &mut answer, &mut wallet);
-    } else {
-        let rm_r_service = Command::new("rm").arg("/etc/relay-node").status().unwrap();
-        println!("{}", rm_r_service);
-        let wget_relay_node = Command::new("wget")
-            .arg("-P")
-            .arg("/etc/")
-            .arg("https://centichain.org/downloads/relay-node")
-            .status()
-            .unwrap();
-
-        println!("{}", wget_relay_node);
-        handle_relay_node(wget_relay_node, &mut answer, &mut wallet);
+                println!("{}", wget_relay_node);
+                handle_relay_node(wget_relay_node, &mut answer, &mut wallet);
+            }
+        }
+        Err(_) => process::exit(1),
     }
 }
 

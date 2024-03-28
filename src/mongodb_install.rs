@@ -1,6 +1,8 @@
-use std::process::Command;
+use std::{fs::OpenOptions, io::Write, process::Command};
 
-pub fn linux_mongo_install() {
+use mongodb::{bson::doc, Client};
+
+pub async fn linux_mongo_install() -> Result<(), String> {
     Command::new("sudo")
         .arg("apt")
         .arg("autoremove")
@@ -10,7 +12,54 @@ pub fn linux_mongo_install() {
     let check_mongo = Command::new("mongosh").output();
 
     match check_mongo {
-        Ok(_) => println!("monogodb is installed"),
+        Ok(_) => {
+            let client = Client::with_uri_str("mongodb://localhost:27017").await;
+            let admin_db = client.unwrap().database("admin");
+            let config = admin_db
+                .run_command(doc! {"replSetGetConfig": 1}, None)
+                .await;
+
+            match config {
+                Ok(_) => {
+                    println!("monogodb is installed and replica set is configured");
+                    Ok(())
+                }
+                Err(_) => {
+                    //set replica set configuration
+                    let mongod_conf_file = OpenOptions::new()
+                        .append(true)
+                        .write(true)
+                        .open("/etc/mongod.conf");
+                    match mongod_conf_file {
+                        Ok(mut file) => {
+                            // Write the replica set configuration to the file
+                            let config_content = "replication:\n  replSetName: \"rs0\"";
+                            writeln!(file, "{}", config_content).unwrap();
+                        }
+                        Err(e) => {
+                            println!("{}", format!("{:?}", e));
+                            return Err("error from create mongod.conf file".to_string());
+                        }
+                    }
+
+                    //restart mongod for set replica
+                    Command::new("sudo")
+                        .arg("systemctl")
+                        .arg("restart")
+                        .arg("mongod")
+                        .output()
+                        .expect("restart mongod problem!");
+
+                    //final set replica set configuration
+                    admin_db
+                        .run_command(doc! {"rs.initiate()": {}}, None)
+                        .await
+                        .unwrap();
+                    println!("monogodb is installed");
+                    Ok(())
+                }
+            }
+        }
         Err(_) => {
             println!("installing mongodb...");
             let curl = Command::new("sudo")
@@ -77,6 +126,40 @@ pub fn linux_mongo_install() {
                 }
                 Err(e) => println!("{}", format!("{:?}", e)),
             }
+
+            //set replica set configuration
+            let mongod_conf_file = OpenOptions::new()
+                .append(true)
+                .write(true)
+                .open("/etc/mongod.conf");
+            match mongod_conf_file {
+                Ok(mut file) => {
+                    // Write the replica set configuration to the file
+                    let config_content = "replication:\n  replSetName: \"rs0\"";
+                    writeln!(file, "{}", config_content).unwrap();
+                }
+                Err(e) => {
+                    println!("{}", format!("{:?}", e));
+                    return Err("error from create mongod.conf file".to_string());
+                }
+            }
+
+            //restart mongod for set replica
+            Command::new("sudo")
+                .arg("systemctl")
+                .arg("restart")
+                .arg("mongod")
+                .output()
+                .expect("restart mongod problem!");
+
+            //final set replica set configuration    
+            let client = Client::with_uri_str("mongodb://localhost:27017").await;
+            let admin_db = client.unwrap().database("admin");
+            admin_db
+                .run_command(doc! {"rs.initiate()": {}}, None)
+                .await
+                .unwrap();
+            Ok(())
         }
     }
 }
