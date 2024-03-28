@@ -168,12 +168,20 @@ pub async fn linux_mongo_install() -> Result<(), String> {
                     let admin_db = client.unwrap().database("admin");
 
                     //final set replica set configuration
-                    admin_db
+                    match admin_db
                         .run_command(doc! {"replSetInitiate": 1}, None)
                         .await
-                        .unwrap();
-                    println!("monogodb is installed");
-                    Ok(())
+                    {
+                        Ok(doc) => {
+                            println!("replica set for:\n{:?}", doc);
+                            println!("monogodb is installed");
+                            Ok(())
+                        }
+                        Err(e) => {
+                            println!("{}", e);
+                            return Err("".to_string());
+                        }
+                    }
                 }
                 Err(e) => {
                     println!("{}", e);
