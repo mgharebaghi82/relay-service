@@ -14,7 +14,8 @@ pub async fn linux_mongo_install() -> Result<(), String> {
     match check_mongo {
         Ok(_) => {
             let client = Client::with_uri_str("mongodb://localhost:27017").await;
-            let admin_db = client.unwrap().database("admin");
+            let admin_db = client.clone().unwrap().database("admin");
+            let test_db = client.clone().unwrap().database("test");
             let config = admin_db
                 .run_command(doc! {"replSetGetConfig": 1}, None)
                 .await;
@@ -51,7 +52,7 @@ pub async fn linux_mongo_install() -> Result<(), String> {
                         .expect("restart mongod problem!");
 
                     //final set replica set configuration
-                    admin_db
+                    test_db
                         .run_command(doc! {"rs.initiate": {}}, None)
                         .await
                         .unwrap();
@@ -152,10 +153,10 @@ pub async fn linux_mongo_install() -> Result<(), String> {
                 .output()
                 .expect("restart mongod problem!");
 
-            //final set replica set configuration    
+            //final set replica set configuration
             let client = Client::with_uri_str("mongodb://localhost:27017").await;
-            let admin_db = client.unwrap().database("admin");
-            admin_db
+            let test_db = client.unwrap().database("test");
+            test_db
                 .run_command(doc! {"rs.initiate()": {}}, None)
                 .await
                 .unwrap();
